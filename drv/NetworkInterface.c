@@ -1,23 +1,38 @@
-/* Copyright (C) 2022 Alif Semiconductor - All Rights Reserved.
- * Use, distribution and modification of this code is permitted under the
- * terms stated in the Alif Semiconductor Software License Agreement
+/*
+ * FreeRTOS-Plus-TCP NetworkInterface Driver for Designware QOS MAC
  *
- * You should have received a copy of the Alif Semiconductor Software
- * License Agreement with this file. If not, please write to:
- * contact@alifsemi.com, or visit: https://alifsemi.com/license
+ * Author   : Silesh C V <silesh@alifsemi.com>
  *
+ * Copyright (C) 2022 ALIF SEMICONDUCTOR
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are met:
+ *  - Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *  - Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *  - Neither the name of ALIF SEMICONDUCTOR nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ *  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ *  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ *  ARE DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDERS AND CONTRIBUTORS BE
+ *  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ *  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ *  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ *  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ *  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
  */
 
-/******************************************************************************
- * @file     NetworkInterface.c
- * @author   Silesh C V
- * @email    silesh@alifsemi.com
- * @version  V1.0.0
- * @date     12-Feb-2021
- * @brief    Implements the Ethernet MAC NetworkInterface Driver.
- * @bug      None.
- * @Note     None
- ******************************************************************************/
+/**
+ * @file NetworkInterface.c
+ * @brief Implements the Ethernet MAC NetworkInterface Driver.
+ */
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
@@ -36,8 +51,9 @@
 #include "phyHandling.h"
 
 /* Driver includes */
-#include "eqos.h"
-#include "Driver_PINMUX_AND_PINPAD.h"
+#include "mac_hw.h"
+#include "pinconf.h"
+#include "sys_ctrl_eth.h"
 
 /* Generic includes */
 #if ( ipconfigHAS_DEBUG_PRINTF != 0 ) || ( ipconfigHAS_PRINTF != 0 )
@@ -69,7 +85,7 @@ static void prvSetMacAddr( DwEqosDev * pxEthDev, const uint8_t * ucAddress );
 /* MAC instance used */
 static DwEqosDev EQOS0 = {
     .pxRegs = (volatile DW_EQOS_REGS *) ETH_BASE,
-    .xIrq = ETH_SBD_IRQ,
+    .xIrq = ETH_SBD_IRQ_IRQn,
 #if ( ipconfigETHERNET_AN_ENABLE != 0 )
     .Config = {
         .ucAutoNegCtrl = AN_ENABLE,
@@ -849,7 +865,7 @@ static void vClearTXBuffers()
             break;
         #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
         {
-            ucPayLoad = ( uint8_t * ) GlobalToLocal( ( void * ) pxDesc->ulDes0 );
+            ucPayLoad = ( uint8_t * ) GlobalToLocal( pxDesc->ulDes0 );
 
             if( ucPayLoad != NULL )
             {
@@ -946,56 +962,50 @@ static void prvEqosHandlerTask( void * pvParameters )
 static BaseType_t prvPinMuxConfigure( void )
 {
     int32_t ret;
-    uint32_t val;
 
-    ret = PINMUX_Config( PORT_NUMBER_1, PIN_NUMBER_0, PINMUX_ALTERNATE_FUNCTION_3 );
-    if ( ret )
+    ret = pinconf_set( PORT_11, PIN_0, PINMUX_ALTERNATE_FUNCTION_6, PADCTRL_READ_ENABLE );
+    if (ret)
         return pdFAIL;
 
-    ret = PINMUX_Config( PORT_NUMBER_1, PIN_NUMBER_1, PINMUX_ALTERNATE_FUNCTION_3 );
-    if ( ret )
+    ret = pinconf_set( PORT_11, PIN_1, PINMUX_ALTERNATE_FUNCTION_5, PADCTRL_READ_ENABLE );
+    if (ret)
         return pdFAIL;
 
-    ret = PINMUX_Config( PORT_NUMBER_1, PIN_NUMBER_2, PINMUX_ALTERNATE_FUNCTION_3 );
-    if ( ret )
+    ret = pinconf_set( PORT_11, PIN_2, PINMUX_ALTERNATE_FUNCTION_6, 0 );
+    if (ret)
         return pdFAIL;
 
-    ret = PINMUX_Config( PORT_NUMBER_1, PIN_NUMBER_3, PINMUX_ALTERNATE_FUNCTION_3 );
-    if ( ret )
+    ret = pinconf_set( PORT_11, PIN_3, PINMUX_ALTERNATE_FUNCTION_6, PADCTRL_READ_ENABLE );
+    if (ret)
         return pdFAIL;
 
-    ret = PINMUX_Config( PORT_NUMBER_1, PIN_NUMBER_4, PINMUX_ALTERNATE_FUNCTION_3 );
-    if ( ret )
+    ret = pinconf_set( PORT_11, PIN_4, PINMUX_ALTERNATE_FUNCTION_6, PADCTRL_READ_ENABLE );
+    if (ret)
         return pdFAIL;
 
-    ret = PINMUX_Config( PORT_NUMBER_1, PIN_NUMBER_5, PINMUX_ALTERNATE_FUNCTION_3 );
-    if ( ret )
+    ret = pinconf_set( PORT_11, PIN_5, PINMUX_ALTERNATE_FUNCTION_6, PADCTRL_READ_ENABLE );
+    if (ret)
         return pdFAIL;
 
-    ret = PINMUX_Config( PORT_NUMBER_1, PIN_NUMBER_6, PINMUX_ALTERNATE_FUNCTION_3 );
-    if ( ret )
+    ret = pinconf_set( PORT_11, PIN_6, PINMUX_ALTERNATE_FUNCTION_6, 0 );
+    if (ret)
         return pdFAIL;
 
-    ret = PINMUX_Config( PORT_NUMBER_1, PIN_NUMBER_7, PINMUX_ALTERNATE_FUNCTION_3 );
-    if ( ret )
+    ret = pinconf_set( PORT_11, PIN_7, PINMUX_ALTERNATE_FUNCTION_6, PADCTRL_READ_ENABLE );
+    if (ret)
         return pdFAIL;
 
-    ret = PINMUX_Config( PORT_NUMBER_1, PIN_NUMBER_8, PINMUX_ALTERNATE_FUNCTION_3 );
-    if ( ret )
+    ret = pinconf_set( PORT_6, PIN_0, PINMUX_ALTERNATE_FUNCTION_6, 0 );
+    if (ret)
         return pdFAIL;
 
-    ret = PINMUX_Config( PORT_NUMBER_1, PIN_NUMBER_9, PINMUX_ALTERNATE_FUNCTION_3 );
-    if ( ret )
+    ret = pinconf_set( PORT_10, PIN_5, PINMUX_ALTERNATE_FUNCTION_6, 0 );
+    if (ret)
         return pdFAIL;
 
-    ret = PINMUX_Config( PORT_NUMBER_1, PIN_NUMBER_10, PINMUX_ALTERNATE_FUNCTION_3 );
-    if ( ret )
+    ret = pinconf_set( PORT_10, PIN_6, PINMUX_ALTERNATE_FUNCTION_6, 0 );
+    if (ret)
         return pdFAIL;
-
-    /* program the clock selection mux to select phy clk as the 50M clock */
-    val = *( ( volatile unsigned int * ) ETH_50M_CLK_MUX_REG );
-    val |= SEL_PHY_REFCLK;
-    *( ( volatile unsigned int * ) ETH_50M_CLK_MUX_REG ) = val;
 
     return pdPASS;
 }
@@ -1022,6 +1032,8 @@ BaseType_t xNetworkInterfaceInitialise( void )
         if ( xReturn != pdPASS )
             return xReturn;
 
+        enable_eth_periph_clk();
+
         xReturn = prvEqosHwInit( &EQOS0 );
 
         if ( xReturn != pdPASS )
@@ -1042,8 +1054,11 @@ BaseType_t xNetworkInterfaceInitialise( void )
         xTXDescriptorSemaphore = xSemaphoreCreateCounting( ( UBaseType_t ) TX_DESC_COUNT,
                                                                  ( UBaseType_t ) TX_DESC_COUNT );
 
-    /* Set priority and enable interrupts */
-    NVIC_SetPriority( EQOS0.xIrq, 1 );
+    /*
+     * Set priority and enable interrupts. Note that configMAX_SYSCALL_INTERRUPT_PRIORITY needs
+     * to be set to value of atleast 2 to support the below priority.
+     */
+    NVIC_SetPriority( EQOS0.xIrq, 2 );
     NVIC_EnableIRQ( EQOS0.xIrq );
 
 

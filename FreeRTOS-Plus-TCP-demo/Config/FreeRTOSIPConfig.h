@@ -31,6 +31,7 @@
 #define FREERTOS_IP_CONFIG_H
 
 #define _static
+#include <stdio.h>
 
 #define ipconfigUSE_ARP_REMOVE_ENTRY       1
 #define ipconfigUSE_ARP_REVERSED_LOOKUP    1

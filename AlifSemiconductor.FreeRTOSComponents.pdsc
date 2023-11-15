@@ -13,10 +13,7 @@
   -->
 
   <releases>
-    <release version="0.0.2" date="2023-01-13">
-      - Update License text
-    </release>
-  <release version="0.0.1" date="2022-06-02">
+    <release version="0.0.3" date="2023-11-10">
       Initial Release
     </release>
   </releases>
@@ -128,8 +125,10 @@
       <files>
         <file category="source" name="drv/phyHandling.c"/>
         <file category="source" name="drv/NetworkInterface.c"/>
-        <file category="header" name="drv/eqos.h"/>
+        <file category="header" name="drv/mac_hw.h"/>
         <file category="header" name="drv/phyHandling.h"/>
+        <file category="include" name="compiler/include"/>
+
 
 	<!-- Templates -->
 	<file category="source" name="FreeRTOS-Plus-TCP-demo/main.c"    attr="template" select="FreeRTOS TCP Demo App"/>
