@@ -31,6 +31,7 @@
 #include <stdio.h>
 
 #include "RTE_Components.h"
+#include CMSIS_device_header
 
 #include <FreeRTOS.h>
 #include "task.h"
